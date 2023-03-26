@@ -21,7 +21,6 @@ import { AuthModule } from './auth/auth.module'
     UsersModule,
     RolesModule,
     AuthModule,
-    ProfileModule,
   ],
   controllers: [],
   providers: [],
