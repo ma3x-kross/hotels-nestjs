@@ -7,13 +7,15 @@ import { JwtService } from '@nestjs/jwt'
 import { InjectModel } from '@nestjs/sequelize'
 import { compare, genSalt, hash } from 'bcryptjs'
 import { RolesService } from 'src/roles/roles.service'
-import { User } from 'src/users/users.model'
+import { Profile } from 'src/users/models/profile.model'
+import { User } from 'src/users/models/users.model'
 import { AuthDto } from './dto/auth.dto'
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
+    @InjectModel(Profile) private readonly profileModel: typeof Profile,
     private readonly roleService: RolesService,
     private readonly jwtService: JwtService,
   ) {}
@@ -59,10 +61,18 @@ export class AuthService {
     })
     const role = await this.roleService.getRoleByValue('USER')
     await user.$set('roles', [role.id])
+
+    const profile = await this.profileModel.create({
+      full_name: dto.full_name,
+      phone: dto.phone,
+      user_id: user.id,
+    })
+
     const tokens = await this.issueTokenPair(String(user.id))
 
     return {
       user,
+      profile,
       ...tokens,
     }
   }
