@@ -7,9 +7,9 @@ import { JwtService } from '@nestjs/jwt'
 import { InjectModel } from '@nestjs/sequelize'
 import { compare, genSalt, hash } from 'bcryptjs'
 import { RolesService } from 'src/roles/roles.service'
-import { Profile } from 'src/users/models/profile.model'
 import { User } from 'src/users/models/users.model'
 import { AuthDto } from './dto/auth.dto'
+import { RefreshTokenDto } from './dto/refreshToken.dto'
 
 @Injectable()
 export class AuthService {
@@ -22,6 +22,22 @@ export class AuthService {
   async login(dto: AuthDto) {
     const user = await this.validateUser(dto)
     const tokens = await this.issueTokenPair(String(user.id))
+    return {
+      user: this.returnUserFields(user),
+      ...tokens,
+    }
+  }
+
+  async getNewToken({ refreshToken }: RefreshTokenDto) {
+    if (!refreshToken) throw new UnauthorizedException('Please sign in')
+
+    const result = await this.jwtService.verifyAsync(refreshToken) // проверяем наш токен или нет
+    if (!result) throw new UnauthorizedException('Invalid token or expired!')
+
+    const user = await this.userModel.findByPk(result.id)
+
+    const tokens = await this.issueTokenPair(String(user.id))
+
     return {
       user: this.returnUserFields(user),
       ...tokens,
