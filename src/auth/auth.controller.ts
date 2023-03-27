@@ -20,11 +20,4 @@ export class AuthController {
   login(@Body() userDto: AuthDto) {
     return this.authService.login(userDto)
   }
-
-  @UsePipes(new ValidationPipe())
-  @HttpCode(200)
-  @Post('/register')
-  register(@Body() userDto: AuthDto) {
-    return this.authService.register(userDto)
-  }
 }

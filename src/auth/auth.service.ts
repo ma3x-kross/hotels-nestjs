@@ -15,7 +15,6 @@ import { AuthDto } from './dto/auth.dto'
 export class AuthService {
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
-    @InjectModel(Profile) private readonly profileModel: typeof Profile,
     private readonly roleService: RolesService,
     private readonly jwtService: JwtService,
   ) {}
@@ -24,7 +23,7 @@ export class AuthService {
     const user = await this.validateUser(dto)
     const tokens = await this.issueTokenPair(String(user.id))
     return {
-      user,
+      user: this.returnUserFields(user),
       ...tokens,
     }
   }
@@ -43,7 +42,7 @@ export class AuthService {
     return user
   }
 
-  async register(dto: AuthDto) {
+  async createUser(dto: AuthDto) {
     const candidate = await this.userModel.findOne({
       where: { email: dto.email },
     })
@@ -61,18 +60,10 @@ export class AuthService {
     })
     const role = await this.roleService.getRoleByValue('USER')
     await user.$set('roles', [role.id])
-
-    const profile = await this.profileModel.create({
-      full_name: dto.full_name,
-      phone: dto.phone,
-      user_id: user.id,
-    })
-
     const tokens = await this.issueTokenPair(String(user.id))
 
     return {
-      user,
-      profile,
+      user: this.returnUserFields(user),
       ...tokens,
     }
   }
@@ -89,5 +80,13 @@ export class AuthService {
     })
 
     return { refreshToken, accessToken }
+  }
+
+  returnUserFields(user: User) {
+    return {
+      id: user.id,
+      email: user.email,
+      roles: user.roles,
+    }
   }
 }
