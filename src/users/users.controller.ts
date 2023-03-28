@@ -4,16 +4,15 @@ import {
   Get,
   HttpCode,
   Post,
-  UseGuards,
   Param,
+  Put,
+  Delete,
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
-import { JwtAuthGuard } from 'src/auth/guards/jwt.guard'
-import { RoleGuard } from 'src/auth/guards/roles.guard'
 import { User } from './decorators/user.decorator'
 import { AddRoleDto } from './dto/add.role.dto'
-// import { JwtAuthGuard } from 'src/auth/guards/jwt.guard'
 import { CreateProfileDto } from './dto/register.user.dto'
+import { UpdateUserDto } from './dto/update.user.dto'
 import { UsersService } from './users.service'
 
 @Controller('users')
@@ -38,14 +37,48 @@ export class UsersController {
     return this.userService.getUserById(id)
   }
 
-  @Get('/:id')
   @Auth('ADMIN')
+  @Get('/:id')
   getUserById(@Param('id') id: number) {
     return this.userService.getUserById(id)
   }
 
+  @HttpCode(200)
+  @Auth('ADMIN')
+  @Put('/:id')
+  async update(@Param('id') id: number, @Body() dto: UpdateUserDto) {
+    return this.userService.updateUser(id, dto)
+  }
+
+  @HttpCode(200)
+  @Auth()
+  @Put('update-self')
+  async updateSelf(@User('id') id: number, @Body() dto: UpdateUserDto) {
+    return this.userService.updateUser(id, dto)
+  }
+
+  @Auth('ADMIN')
+  @Delete('/:id')
+  delete(@Param('id') id: number) {
+    this.userService.deleteUser(id)
+  }
+
+  @Auth()
+  @Delete('delete-self')
+  deleteSelf(@User('id') id: number) {
+    this.userService.deleteUser(id)
+  }
+
+  @HttpCode(200)
+  @Auth('ADMIN')
   @Post('/role')
   addRole(@Body() dto: AddRoleDto) {
     return this.userService.addRole(dto)
+  }
+
+  @Auth('ADMIN')
+  @Delete('/role')
+  deleteRole(@Body() dto: AddRoleDto) {
+    return this.userService.deleteRole(dto)
   }
 }

@@ -85,23 +85,6 @@ export class AuthService {
     })
     const role = await this.roleService.getRoleByValue('USER')
     await user.$set('roles', [role.id])
-
-    // user = await this.userModel.findOne({
-    //   where: { email: dto.email },
-    //   include: ['roles'],
-    // })
-    // const updatedUser = this.returnUserFields(
-    //   await this.userModel.findOne({
-    //     where: { email: dto.email },
-    //     include: ['roles'],
-    //   }),
-    // )
-    // const tokens = await this.generateTokens(updatedUser)
-
-    // return {
-    //   user: updatedUser,
-    //   ...tokens,
-    // }
     return user
   }
 
