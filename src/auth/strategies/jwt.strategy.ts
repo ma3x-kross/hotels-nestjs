@@ -3,13 +3,13 @@ import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { InjectModel } from '@nestjs/sequelize'
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import { User } from 'src/users/models/users.model'
+import { UserModel } from 'src/users/models/users.model'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
-    @InjectModel(User) private readonly userModel: typeof User,
+    @InjectModel(UserModel) private readonly userModel: typeof UserModel,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken, // jwt из реквеста получаем с помощью авторизованного хедера бирер токена
@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate({ id }: Pick<User, 'id'>) {
+  async validate({ id }: Pick<UserModel, 'id'>) {
     const user = await this.userModel.findByPk(id)
     return user
   }

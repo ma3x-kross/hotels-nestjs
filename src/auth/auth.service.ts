@@ -7,23 +7,26 @@ import { JwtService } from '@nestjs/jwt'
 import { InjectModel } from '@nestjs/sequelize'
 import { compare, genSalt, hash } from 'bcryptjs'
 import { RolesService } from 'src/roles/roles.service'
-import { User } from 'src/users/models/users.model'
+import { UserModel } from 'src/users/models/users.model'
 import { AuthDto } from './dto/auth.dto'
+import { GenerateTokensDto } from './dto/generate.tokens.dto'
 import { RefreshTokenDto } from './dto/refreshToken.dto'
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User) private readonly userModel: typeof User,
+    @InjectModel(UserModel) private readonly userModel: typeof UserModel,
     private readonly roleService: RolesService,
     private readonly jwtService: JwtService,
   ) {}
 
   async login(dto: AuthDto) {
     const user = await this.validateUser(dto)
-    const tokens = await this.issueTokenPair(String(user.id))
+    const updatedUser = this.returnUserFields(user)
+    const tokens = await this.generateTokens(updatedUser)
+
     return {
-      user: this.returnUserFields(user),
+      user: updatedUser,
       ...tokens,
     }
   }
@@ -34,18 +37,24 @@ export class AuthService {
     const result = await this.jwtService.verifyAsync(refreshToken) // проверяем наш токен или нет
     if (!result) throw new UnauthorizedException('Invalid token or expired!')
 
-    const user = await this.userModel.findByPk(result.id)
+    const user = await this.userModel.findByPk(result.id, {
+      include: ['roles'],
+    })
 
-    const tokens = await this.issueTokenPair(String(user.id))
+    const updatedUser = this.returnUserFields(user)
+    const tokens = await this.generateTokens(updatedUser)
 
     return {
-      user: this.returnUserFields(user),
+      user: updatedUser,
       ...tokens,
     }
   }
 
-  private async validateUser(dto): Promise<User> {
-    const user = await this.userModel.findOne({ where: { email: dto.email } })
+  private async validateUser(dto: AuthDto): Promise<UserModel> {
+    const user = await this.userModel.findOne({
+      where: { email: dto.email },
+      include: ['roles'],
+    })
     if (!user) {
       throw new UnauthorizedException('User not found')
     }
@@ -76,16 +85,28 @@ export class AuthService {
     })
     const role = await this.roleService.getRoleByValue('USER')
     await user.$set('roles', [role.id])
-    const tokens = await this.issueTokenPair(String(user.id))
 
-    return {
-      user: this.returnUserFields(user),
-      ...tokens,
-    }
+    // user = await this.userModel.findOne({
+    //   where: { email: dto.email },
+    //   include: ['roles'],
+    // })
+    // const updatedUser = this.returnUserFields(
+    //   await this.userModel.findOne({
+    //     where: { email: dto.email },
+    //     include: ['roles'],
+    //   }),
+    // )
+    // const tokens = await this.generateTokens(updatedUser)
+
+    // return {
+    //   user: updatedUser,
+    //   ...tokens,
+    // }
+    return user
   }
 
-  async issueTokenPair(userId: string) {
-    const payload = { id: userId }
+  async generateTokens(dto: GenerateTokensDto) {
+    const payload = { email: dto.email, id: dto.id, roles: dto.roles }
 
     const refreshToken = await this.jwtService.signAsync(payload, {
       expiresIn: '15d',
@@ -98,11 +119,15 @@ export class AuthService {
     return { refreshToken, accessToken }
   }
 
-  returnUserFields(user: User) {
+  returnUserFields(user: UserModel) {
+    const roles = user.roles.map((role) => ({
+      value: role.value,
+      description: role.description,
+    }))
     return {
       id: user.id,
       email: user.email,
-      roles: user.roles,
+      roles,
     }
   }
 }

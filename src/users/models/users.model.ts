@@ -16,7 +16,7 @@ interface UserCreationAttr {
 }
 
 @Table({ tableName: 'users' })
-export class User extends Model<User, UserCreationAttr> {
+export class UserModel extends Model<UserModel, UserCreationAttr> {
   @Column({
     type: DataType.INTEGER,
     unique: true,

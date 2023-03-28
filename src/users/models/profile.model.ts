@@ -6,7 +6,7 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript'
-import { User } from './users.model'
+import { UserModel } from './users.model'
 
 interface ProfileCreationAttr {
   user_id: number
@@ -30,10 +30,10 @@ export class Profile extends Model<Profile, ProfileCreationAttr> {
   @Column({ type: DataType.STRING, allowNull: false })
   phone: string
 
-  @ForeignKey(() => User)
+  @ForeignKey(() => UserModel)
   @Column({ type: DataType.INTEGER })
   user_id: number
 
-  @BelongsTo(() => User)
-  user: User
+  @BelongsTo(() => UserModel)
+  user: UserModel
 }
