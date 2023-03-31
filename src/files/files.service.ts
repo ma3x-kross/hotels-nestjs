@@ -3,9 +3,7 @@ import { InjectModel } from '@nestjs/sequelize'
 import { path, resolve } from 'app-root-path'
 import { ensureDir, writeFile, unlink } from 'fs-extra'
 import { Op } from 'sequelize'
-import { FileResponse } from './files.interface'
 import { FileModel } from './files.model'
-// import * as path from 'path'
 
 @Injectable()
 export class FileService {
@@ -18,12 +16,12 @@ export class FileService {
     folder = 'default',
     essence_table?: string,
     essence_id?: number,
-  ): Promise<FileResponse[]> {
+  ) {
     try {
       const uploadFolder = `${path}/uploads/${folder}`
       await ensureDir(uploadFolder) // создание директории
 
-      const res: FileResponse[] = await Promise.all(
+      const res = await Promise.all(
         files.map(async (file) => {
           await writeFile(`${uploadFolder}/${file.originalname}`, file.buffer)
 
@@ -38,6 +36,8 @@ export class FileService {
       )
       return res
     } catch (e) {
+      console.log(e)
+
       throw new HttpException(
         'File write error',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -45,7 +45,7 @@ export class FileService {
     }
   }
 
-  async deleteFile() {
+  async deleteUnnecessaryFiles() {
     const files = await this.fileModel.findAll({
       where: {
         [Op.or]: [
@@ -59,11 +59,13 @@ export class FileService {
         ],
       },
     })
-    files.forEach(async (file) => {
-      const filePath = resolve(file.url)
-      await unlink(filePath)
-      await (await this.fileModel.findByPk(file.id)).destroy()
-    })
+    files.forEach(async (file) => this.delete(file))
     return files
+  }
+
+  async delete(file: FileModel) {
+    const filePath = resolve(file.url)
+    await unlink(filePath)
+    await (await this.fileModel.findByPk(file.id)).destroy()
   }
 }

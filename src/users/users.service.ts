@@ -102,7 +102,7 @@ export class UsersService {
   async deleteUser(id: number) {
     const user = await this.userModel.findByPk(id)
     if (!user) throw new NotFoundException('User not found')
-    await user.destroy
+    await user.destroy()
   }
 
   async addRole(dto: AddRoleDto) {

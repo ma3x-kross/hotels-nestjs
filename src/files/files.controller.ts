@@ -25,13 +25,12 @@ export class FileController {
     @Query('essence_table') essence_table?: string,
     @Query('essence_id') essence_id?: number,
   ) {
-    // return this.fileService.saveFiles([file], essence_table, essence_id)
-    return this.fileService.saveFiles([file], folder)
+    return this.fileService.saveFiles([file], folder, essence_table, essence_id)
   }
 
   @Delete()
   @Auth('ADMIN')
   async delete() {
-    return this.fileService.deleteFile()
+    return this.fileService.deleteUnnecessaryFiles()
   }
 }

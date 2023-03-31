@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module'
 import { RolesModule } from './roles/roles.module'
 import { AuthModule } from './auth/auth.module'
 import { FileModule } from './files/files.module'
+import { TextBlockModule } from './text-block/text-block.module'
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { FileModule } from './files/files.module'
     RolesModule,
     AuthModule,
     FileModule,
+    TextBlockModule,
   ],
   controllers: [],
   providers: [],

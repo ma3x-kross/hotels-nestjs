@@ -24,7 +24,7 @@ export class RoleGuard implements CanActivate {
         context.getHandler(),
         context.getClass(),
       ])
-      console.log(requiredRoles)
+
       if (!requiredRoles) {
         // если ролей нет, то доступ будет доступен всем
         return true
