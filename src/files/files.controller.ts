@@ -10,11 +10,16 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { FileService } from './files.service'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { FileModel } from './files.model'
 
+@ApiTags('Файлы')
 @Controller('files')
 export class FileController {
   constructor(private readonly fileService: FileService) {}
 
+  @ApiOperation({ summary: 'Загрузка файлов' })
+  @ApiResponse({ status: 200, type: [FileModel] })
   @Post()
   @HttpCode(200)
   @Auth('ADMIN')
@@ -28,6 +33,8 @@ export class FileController {
     return this.fileService.saveFiles([file], folder, essence_table, essence_id)
   }
 
+  @ApiOperation({ summary: 'Удаление неиспользуемых файлов' })
+  @ApiResponse({ status: 200, type: [FileModel] })
   @Delete()
   @Auth('ADMIN')
   async delete() {

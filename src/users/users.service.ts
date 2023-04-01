@@ -8,7 +8,7 @@ import { genSalt, hash } from 'bcryptjs'
 import { AuthService } from 'src/auth/auth.service'
 import { RolesService } from 'src/roles/roles.service'
 import { UserRoles } from 'src/roles/user-roles.model'
-import { AddRoleDto } from './dto/add.role.dto'
+import { RoleDto } from './dto/role.dto'
 import { CreateProfileDto } from './dto/register.user.dto'
 import { UpdateUserDto } from './dto/update.user.dto'
 import { Profile } from './models/profile.model'
@@ -105,7 +105,7 @@ export class UsersService {
     await user.destroy()
   }
 
-  async addRole(dto: AddRoleDto) {
+  async addRole(dto: RoleDto) {
     const user = await this.userModel.findByPk(dto.userId)
     const role = await this.roleService.getRoleByValue(dto.value)
 
@@ -116,7 +116,7 @@ export class UsersService {
     throw new NotFoundException('User or role not found')
   }
 
-  async deleteRole(dto: AddRoleDto) {
+  async deleteRole(dto: RoleDto) {
     const role = await this.roleService.getRoleByValue(dto.value)
     const userRole = await this.userRolesModel.findOne({
       where: { userId: dto.userId, roleId: role.id },
